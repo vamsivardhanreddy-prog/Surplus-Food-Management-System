@@ -5,6 +5,7 @@ import {
   useLogin, 
   useRegister,
   getGetMeQueryKey,
+  setAuthTokenGetter,
   type User,
   type LoginRequest,
   type RegisterRequest
@@ -27,10 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Setup generic fetch interceptor or headers logic globally if needed.
-  // For this implementation, we assume `custom-fetch` picks up the token, 
-  // but to be safe we sync it with localStorage which is the standard approach.
-  
+  // Register the token getter so every API request includes Authorization: Bearer <token>
+  useEffect(() => {
+    setAuthTokenGetter(() => localStorage.getItem("food_mgmt_token"));
+    return () => {
+      setAuthTokenGetter(null);
+    };
+  }, []);
+
   const { data: user, isLoading: isUserLoading, error } = useGetMe({
     query: {
       enabled: !!token,
