@@ -1,0 +1,21 @@
+packages:
+  "framer-motion": "For smooth page transitions and interactive element animations"
+  "react-hook-form": "For robust form state management and validation"
+  "@hookform/resolvers": "Zod resolver for react-hook-form"
+  "zod": "Schema validation for forms"
+  "socket.io-client": "Real-time notifications for nearby donations and claims"
+  "date-fns": "Human-readable date formatting for expiry times and creation dates"
+  "recharts": "Data visualization for the admin dashboard statistics"
+
+images:
+  - path: "artifacts/food-mgmt/public/images/hero-bg.png"
+    description: "A beautiful, uplifting abstract background featuring warm greens and oranges, symbolizing food sharing, community, and humanitarian effort. Soft lighting, modern clean style."
+    aspect_ratio: "16:9"
+  - path: "artifacts/food-mgmt/public/images/logo-icon.png"
+    description: "A minimalist, modern logo icon combining a leaf and a food bowl in warm green and orange. Transparent background."
+    aspect_ratio: "1:1"
+
+notes:
+  - "Authentication: Token is stored in localStorage as 'food_mgmt_token'. The provided custom-fetch must be configured to pass it, or we handle it in global state. Assuming standard bearer token flow."
+  - "Socket.io: Connects to '/' path '/socket.io'."
+  - "Geolocation: Uses browser navigator.geolocation."

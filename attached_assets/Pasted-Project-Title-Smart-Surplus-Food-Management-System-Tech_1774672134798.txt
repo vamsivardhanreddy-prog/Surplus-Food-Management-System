@@ -1,0 +1,55 @@
+Project Title: Smart Surplus Food Management System
+Tech Stack: MERN Stack (MongoDB, Express.js, React.js, Node.js), TailwindCSS for responsive design.
+
+System Overview:
+I want to build a responsive web application that connects food donators with verified NGOs to minimize food waste. The system must handle user authentication, role-based access control, geospatial querying to find nearby users, and real-time notifications.
+
+User Roles & Permissions:
+
+Admin: Can view all users, verify or reject NGO registrations, and monitor overall platform statistics.
+
+NGO (Orphanages, Old Age Homes, Trusts): Must be verified by the Admin before they can interact with donations. Once verified, they can receive real-time notifications for nearby food donations, view donation details, and claim them.
+
+Donator (General Public/Restaurants): Can register freely. They can create food donation listings by inputting food details and setting a pickup location.
+
+Core Features & Technical Requirements:
+
+1. NGO Verification Flow (High Priority):
+
+Registration: When an NGO registers, they must upload/provide an NGO registration number, contact details, and their exact geographical location (Latitude/Longitude).
+
+Status: Their default account status should be pending_verification. While pending, they cannot view or claim food.
+
+Admin Approval: The Admin dashboard should have a "Verification Requests" tab. The Admin reviews the NGO's details and changes their status to verified or rejected.
+
+2. Donation Creation Flow:
+
+Donators can fill out a "New Donation" form containing: List of food items, quantity (e.g., serves X people), expiry time/date, dietary info (veg/non-veg), and special instructions.
+
+Location: The form must capture the donator's exact pickup location (Latitude/Longitude) using the browser's Geolocation API or a map pin.
+
+3. Geospatial Matching & Real-Time Notifications (High Priority):
+
+Database: Use MongoDB. You MUST implement a 2dsphere index on the location fields for both NGOs and Donations to allow for efficient geospatial queries.
+
+Matching Logic: When a Donator successfully posts a donation, the backend should immediately run a geospatial query (using $geoNear or $nearSphere) to find all verified NGOs within a specific radius (e.g., 10 kilometers) of the donation's pickup location.
+
+Notifications: Implement real-time notifications (using Socket.io or Server-Sent Events). Only the verified NGOs within that radius should receive a real-time alert saying: "New food donation available nearby!"
+
+4. The Claiming Process:
+
+A donation should have a status: available, claimed, or completed.
+
+When a verified, nearby NGO clicks "Claim", the donation status changes to claimed so no one else can claim it (preventing double-booking).
+
+Upon claiming, the NGO gets access to the exact pickup address and the Donator's contact info. The Donator receives a notification that their food has been claimed by that specific NGO.
+
+Instructions for the AI:
+
+Database Schema: Please design the Mongoose schemas first, ensuring you use GeoJSON Point schemas for locations.
+
+Backend: Set up the Express server, RESTful API routes, JWT-based authentication, and the Socket.io server for notifications.
+
+Frontend: Build a clean, mobile-first responsive UI using React and TailwindCSS. Include separate dashboards for Admin, Donator, and NGO.
+
+Please write modular, clean code and implement the backend geospatial logic very carefully to ensure we don't spam NGOs that are too far away to pick up the food before it expires. Let's start by defining the Database Schemas and the Express server setup.

@@ -1,15 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Smart Surplus Food Management System API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: donations
+    description: Food donation operations
+  - name: notifications
+    description: Notification operations
 paths:
   /healthz:
     get:
@@ -24,7 +31,442 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, donator, ngo]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending_verification, verified, rejected, active]
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/ngos/pending:
+    get:
+      operationId: listPendingNgos
+      tags: [users]
+      summary: List NGOs pending verification (Admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of pending NGOs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/{id}/verify:
+    patch:
+      operationId: verifyNgo
+      tags: [users]
+      summary: Verify or reject an NGO (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyNgoRequest"
+      responses:
+        "200":
+          description: NGO status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: NGO not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/stats:
+    get:
+      operationId: getPlatformStats
+      tags: [users]
+      summary: Get platform statistics (Admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Platform statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /donations:
+    get:
+      operationId: listDonations
+      tags: [donations]
+      summary: List donations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [available, claimed, completed]
+        - name: myDonations
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of donations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Donation"
+
+    post:
+      operationId: createDonation
+      tags: [donations]
+      summary: Create a food donation (Donator only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDonationRequest"
+      responses:
+        "201":
+          description: Donation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Donation"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /donations/nearby:
+    get:
+      operationId: listNearbyDonations
+      tags: [donations]
+      summary: List available donations nearby (NGO only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: radiusKm
+          in: query
+          schema:
+            type: number
+            default: 10
+      responses:
+        "200":
+          description: List of nearby available donations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Donation"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /donations/{id}:
+    get:
+      operationId: getDonation
+      tags: [donations]
+      summary: Get a specific donation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Donation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Donation"
+        "404":
+          description: Donation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /donations/{id}/claim:
+    post:
+      operationId: claimDonation
+      tags: [donations]
+      summary: Claim a donation (Verified NGO only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Donation claimed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Donation"
+        "400":
+          description: Already claimed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Donation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /donations/{id}/complete:
+    post:
+      operationId: completeDonation
+      tags: [donations]
+      summary: Mark a donation as completed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Donation marked as completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Donation"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Donation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: Get notifications for current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +476,305 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [donator, ngo]
+        organizationName:
+          type: ["string", "null"]
+        registrationNumber:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+      required:
+        - name
+        - email
+        - password
+        - role
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, donator, ngo]
+        status:
+          type: string
+          enum: [active, pending_verification, verified, rejected]
+        organizationName:
+          type: ["string", "null"]
+        registrationNumber:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - status
+        - createdAt
+
+    VerifyNgoRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [verified, rejected]
+      required:
+        - status
+
+    PlatformStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalDonators:
+          type: integer
+        totalNgos:
+          type: integer
+        pendingVerifications:
+          type: integer
+        totalDonations:
+          type: integer
+        availableDonations:
+          type: integer
+        claimedDonations:
+          type: integer
+        completedDonations:
+          type: integer
+      required:
+        - totalUsers
+        - totalDonators
+        - totalNgos
+        - pendingVerifications
+        - totalDonations
+        - availableDonations
+        - claimedDonations
+        - completedDonations
+
+    FoodItem:
+      type: object
+      properties:
+        name:
+          type: string
+        quantity:
+          type: string
+      required:
+        - name
+        - quantity
+
+    CreateDonationRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        foodItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/FoodItem"
+        servesCount:
+          type: integer
+        expiryTime:
+          type: string
+          format: date-time
+        dietaryType:
+          type: string
+          enum: [veg, non-veg, both]
+        specialInstructions:
+          type: ["string", "null"]
+        pickupAddress:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        pickupInstructions:
+          type: ["string", "null"]
+      required:
+        - title
+        - foodItems
+        - servesCount
+        - expiryTime
+        - dietaryType
+        - pickupAddress
+        - latitude
+        - longitude
+
+    Donation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        foodItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/FoodItem"
+        servesCount:
+          type: integer
+        expiryTime:
+          type: string
+          format: date-time
+        dietaryType:
+          type: string
+          enum: [veg, non-veg, both]
+        specialInstructions:
+          type: ["string", "null"]
+        pickupAddress:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        pickupInstructions:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [available, claimed, completed]
+        donatorId:
+          type: integer
+        claimedByNgoId:
+          type: ["integer", "null"]
+        donator:
+          $ref: "#/components/schemas/UserSummary"
+        claimedByNgo:
+          anyOf:
+            - $ref: "#/components/schemas/UserSummary"
+            - type: "null"
+        distanceKm:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - foodItems
+        - servesCount
+        - expiryTime
+        - dietaryType
+        - pickupAddress
+        - latitude
+        - longitude
+        - status
+        - donatorId
+        - createdAt
+
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        organizationName:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+        - email
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [donation_nearby, donation_claimed, donation_completed, ngo_verified, ngo_rejected]
+        title:
+          type: string
+        message:
+          type: string
+        donationId:
+          type: ["integer", "null"]
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - message
+        - isRead
+        - createdAt
