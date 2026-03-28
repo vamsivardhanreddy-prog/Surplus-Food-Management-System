@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { HeartHandshake, Loader2, MapPin } from "lucide-react";
+import { HeartHandshake, Loader2, MapPin, Utensils, Building2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { RegisterRequestRole } from "@workspace/api-client-react";
@@ -114,26 +114,22 @@ export function Register() {
                           defaultValue={field.value}
                           className="grid grid-cols-2 gap-4"
                         >
-                          <FormItem>
-                            <FormControl>
-                              <RadioGroupItem value="donator" className="peer sr-only" />
-                            </FormControl>
-                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-transparent p-4 hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer">
+                          <div className="relative">
+                            <RadioGroupItem value="donator" id="role-donator" className="peer sr-only" />
+                            <label htmlFor="role-donator" className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-transparent p-4 hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer">
                               <Utensils className="mb-2 h-6 w-6 text-primary" />
                               <span className="font-bold">Donator</span>
                               <span className="text-xs text-muted-foreground mt-1 font-normal text-center">I have surplus food</span>
-                            </FormLabel>
-                          </FormItem>
-                          <FormItem>
-                            <FormControl>
-                              <RadioGroupItem value="ngo" className="peer sr-only" />
-                            </FormControl>
-                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-transparent p-4 hover:bg-muted/50 peer-data-[state=checked]:border-secondary peer-data-[state=checked]:bg-secondary/5 cursor-pointer">
-                              <HeartHandshake className="mb-2 h-6 w-6 text-secondary" />
+                            </label>
+                          </div>
+                          <div className="relative">
+                            <RadioGroupItem value="ngo" id="role-ngo" className="peer sr-only" />
+                            <label htmlFor="role-ngo" className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-transparent p-4 hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer">
+                              <HeartHandshake className="mb-2 h-6 w-6 text-primary" />
                               <span className="font-bold">NGO</span>
                               <span className="text-xs text-muted-foreground mt-1 font-normal text-center">I want to claim food</span>
-                            </FormLabel>
-                          </FormItem>
+                            </label>
+                          </div>
                         </RadioGroup>
                       </FormControl>
                       <FormMessage />
