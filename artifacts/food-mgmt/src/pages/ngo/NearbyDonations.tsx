@@ -94,10 +94,11 @@ export function NearbyDonations() {
             <div>
               <p className="font-medium text-blue-900">Secure Location-Based Claiming</p>
               <p className="text-sm text-blue-800">
-                ✓ You must be at your registered NGO location to claim food<br/>
+                ✓ You can claim food from anywhere<br/>
+                ✓ But you must be at your registered NGO location to claim<br/>
                 ✓ When claiming, location access will be requested for verification<br/>
-                ✓ Your current location must match your registered location (within 0.5km)<br/>
-                ✓ This ensures food authenticity and prevents unauthorized claims
+                ✓ Your current GPS location must match your registered location (within 0.5km)<br/>
+                ✓ This prevents unauthorized claims and ensures only verified staff can receive food
               </p>
             </div>
           </div>

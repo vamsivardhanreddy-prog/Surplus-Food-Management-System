@@ -242,16 +242,6 @@ router.post("/:id/claim", requireRole("ngo"), async (req: AuthRequest, res) => {
     return;
   }
 
-  // Check if donation location is within NGO's registered area (0.5km radius) for pickup convenience
-  const distToDonation = haversineKm(user.latitude, user.longitude, donation.latitude, donation.longitude);
-  const maxDistanceKm = 0.5; // NGO can only claim food at their registered location
-  if (distToDonation > maxDistanceKm) {
-    res.status(403).json({ 
-      error: `This donation is ${distToDonation.toFixed(1)}km away from your registered location. You can only claim food within 0.5km of your registered location.` 
-    });
-    return;
-  }
-
   const [updated] = await db
     .update(donationsTable)
     .set({ status: "claimed", claimedByNgoId: user.id })
