@@ -2,7 +2,7 @@ import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { Navbar } from "@/components/layout/Navbar";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Clock, MapPin, HandHeart, CheckCircle, Navigation } from "lucide-react";
+import { AlertCircle, Clock, MapPin, HandHeart, CheckCircle, Navigation, Award, PackageCheck } from "lucide-react";
 import { useListDonations, useCompleteDonation, getListDonationsQueryKey } from "@workspace/api-client-react";
 import { DonationCard } from "@/components/DonationCard";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,11 @@ export function NgoDashboard() {
 
   const claimedDonations = myDonations?.filter(d => d.status === 'claimed') || [];
   const completedDonations = myDonations?.filter(d => d.status === 'completed') || [];
+
+  // Calculate NGO impact statistics
+  const totalFoodItemsClaimed = claimedDonations.reduce((sum, d) => sum + (d.foodItems?.length || 0), 0);
+  const totalFoodItemsCompleted = completedDonations.reduce((sum, d) => sum + (d.foodItems?.length || 0), 0);
+  const totalPeopleServed = completedDonations.reduce((sum, d) => sum + (d.servesCount || 0), 0);
 
   if (user?.status === "pending_verification") {
     return (
@@ -75,6 +80,50 @@ export function NgoDashboard() {
               </Button>
             </Link>
           </div>
+
+          {/* Impact Statistics - only show when verified */}
+          {user?.status !== "pending_verification" && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+              <Card className="rounded-2xl border-border/50">
+                <CardContent className="pt-6 flex flex-col items-start gap-2">
+                  <div className="bg-primary/10 p-2.5 rounded-lg">
+                    <PackageCheck className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-sm">Pending Pickup</p>
+                    <p className="text-3xl font-bold text-foreground">{totalFoodItemsClaimed}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{claimedDonations.length} claims</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border-border/50">
+                <CardContent className="pt-6 flex flex-col items-start gap-2">
+                  <div className="bg-emerald-100/80 p-2.5 rounded-lg">
+                    <Award className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-sm">Food Received</p>
+                    <p className="text-3xl font-bold text-foreground">{totalFoodItemsCompleted}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{completedDonations.length} completed</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border-border/50">
+                <CardContent className="pt-6 flex flex-col items-start gap-2">
+                  <div className="bg-blue-100/80 p-2.5 rounded-lg">
+                    <HandHeart className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-sm">People Served</p>
+                    <p className="text-3xl font-bold text-foreground">{totalPeopleServed.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1">from pickups</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <div className="space-y-10">
             <section>

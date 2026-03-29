@@ -3,8 +3,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { useListDonations } from "@workspace/api-client-react";
 import { DonationCard } from "@/components/DonationCard";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import { PlusCircle, Loader2 } from "lucide-react";
+import { PlusCircle, Loader2, TrendingUp, Users, Package, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function DonatorDashboard() {
@@ -13,6 +14,12 @@ export function DonatorDashboard() {
 
   const activeDonations = donations?.filter(d => d.status !== 'completed') || [];
   const pastDonations = donations?.filter(d => d.status === 'completed') || [];
+
+  // Calculate impact statistics
+  const totalDonations = donations?.length || 0;
+  const totalPeopleServed = donations?.reduce((sum, d) => sum + (d.servesCount || 0), 0) || 0;
+  const completedDonations = pastDonations.length;
+  const totalFoodItems = donations?.reduce((sum, d) => sum + (d.foodItems?.length || 0), 0) || 0;
 
   return (
     <ProtectedRoute allowedRoles={["donator"]}>
@@ -30,6 +37,57 @@ export function DonatorDashboard() {
                 <PlusCircle className="mr-2 h-5 w-5" /> Post Food
               </Button>
             </Link>
+          </div>
+
+          {/* Impact Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <Card className="rounded-2xl border-border/50">
+              <CardContent className="pt-6 flex flex-col items-start gap-2">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">Total Donations</p>
+                  <p className="text-3xl font-bold text-foreground">{totalDonations}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-border/50">
+              <CardContent className="pt-6 flex flex-col items-start gap-2">
+                <div className="bg-secondary/10 p-2.5 rounded-lg">
+                  <Users className="h-5 w-5 text-secondary" />
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">People Served</p>
+                  <p className="text-3xl font-bold text-foreground">{totalPeopleServed.toLocaleString()}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-border/50">
+              <CardContent className="pt-6 flex flex-col items-start gap-2">
+                <div className="bg-emerald-100/80 p-2.5 rounded-lg">
+                  <Package className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">Food Items Listed</p>
+                  <p className="text-3xl font-bold text-foreground">{totalFoodItems}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-border/50">
+              <CardContent className="pt-6 flex flex-col items-start gap-2">
+                <div className="bg-blue-100/80 p-2.5 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">Completed</p>
+                  <p className="text-3xl font-bold text-foreground">{completedDonations}</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-10">
