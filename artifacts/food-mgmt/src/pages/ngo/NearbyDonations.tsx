@@ -62,6 +62,15 @@ export function NearbyDonations() {
             <p className="text-muted-foreground mt-2">Available donations within 15km of your registered location.</p>
           </div>
 
+          {/* Location Restriction Info */}
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
+            <MapPin className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium text-blue-900">Location-Based Claiming</p>
+              <p className="text-sm text-blue-800">You can only claim food donations within 0.5km of your registered NGO location. This ensures fresh food and efficient pickups.</p>
+            </div>
+          </div>
+
           {/* Search & Filter Bar */}
           <div className="bg-white rounded-2xl border border-border/50 p-4 mb-8 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

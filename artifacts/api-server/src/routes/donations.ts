@@ -61,12 +61,19 @@ router.get("/nearby", requireRole("ngo"), async (req: AuthRequest, res) => {
     return;
   }
 
+  const now = new Date();
   const allAvailable = await db
     .select()
     .from(donationsTable)
     .where(eq(donationsTable.status, "available"));
 
+  // Filter: Only non-expired donations within location radius
   const nearby = allAvailable.filter((d) => {
+    // Check if donation has not expired
+    const hasNotExpired = new Date(d.expiryTime) > now;
+    if (!hasNotExpired) return false;
+    
+    // Check if donation is within radius (default 15km, but NGOs can only claim within their registered area)
     const dist = haversineKm(user.latitude!, user.longitude!, d.latitude, d.longitude);
     return dist <= radiusKm;
   });
@@ -202,6 +209,25 @@ router.post("/:id/claim", requireRole("ngo"), async (req: AuthRequest, res) => {
   if (donation.status !== "available") {
     res.status(400).json({ error: "Donation is no longer available" });
     return;
+  }
+
+  // Check if donation has expired
+  const now = new Date();
+  if (new Date(donation.expiryTime) <= now) {
+    res.status(400).json({ error: "This food donation has already expired" });
+    return;
+  }
+
+  // Check if donation location is within NGO's registered area (0.5km radius)
+  if (user.latitude && user.longitude) {
+    const dist = haversineKm(user.latitude, user.longitude, donation.latitude, donation.longitude);
+    const maxDistanceKm = 0.5; // NGO can only claim food at their registered location
+    if (dist > maxDistanceKm) {
+      res.status(403).json({ 
+        error: `You can only claim food within 0.5km of your registered location. This donation is ${dist.toFixed(1)}km away.` 
+      });
+      return;
+    }
   }
 
   const [updated] = await db

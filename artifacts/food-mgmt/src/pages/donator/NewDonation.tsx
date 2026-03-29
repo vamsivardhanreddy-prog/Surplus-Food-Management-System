@@ -30,6 +30,14 @@ const schema = z.object({
   latitude: z.coerce.number({ required_error: "Location required" }),
   longitude: z.coerce.number({ required_error: "Location required" }),
   pickupInstructions: z.string().optional(),
+}).refine((data) => {
+  // Ensure expiry time is in the future
+  const expiryDate = new Date(data.expiryTime);
+  const now = new Date();
+  return expiryDate > now;
+}, {
+  message: "Food must expire in the future, not in the past",
+  path: ["expiryTime"]
 });
 
 export function NewDonation() {
@@ -155,18 +163,28 @@ export function NewDonation() {
                     <FormField
                       control={form.control}
                       name="expiryTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Expiry Time (When it goes bad) *</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input type="datetime-local" className="h-12 rounded-xl pl-10" {...field} />
-                              <CalendarIcon className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        // Get minimum datetime (now)
+                        const now = new Date();
+                        const minDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                        return (
+                          <FormItem>
+                            <FormLabel>Expiry Time (When it goes bad) *</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input 
+                                  type="datetime-local" 
+                                  className="h-12 rounded-xl pl-10" 
+                                  min={minDateTime}
+                                  {...field} 
+                                />
+                                <CalendarIcon className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
                   </div>
 
