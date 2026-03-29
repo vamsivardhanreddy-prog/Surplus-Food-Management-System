@@ -258,7 +258,7 @@ export function Register() {
                     />
 
                     <div className="space-y-3">
-                      <FormLabel>Location Coordinates *</FormLabel>
+                      <label className="text-sm font-medium text-foreground/80">Location Coordinates *</label>
                       <div className="flex gap-2">
                         <Button type="button" variant="outline" onClick={getLocation} className="rounded-xl w-full h-11 border-primary text-primary hover:bg-primary/5">
                           <MapPin className="mr-2 h-4 w-4" /> Get Current Location
