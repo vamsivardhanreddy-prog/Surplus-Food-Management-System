@@ -175,7 +175,7 @@ export function NewDonation() {
                   {/* Food Items Array */}
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <FormLabel className="text-base font-semibold">Food Items *</FormLabel>
+                      <label className="text-base font-semibold text-foreground/80">Food Items *</label>
                       <Button type="button" variant="outline" size="sm" onClick={() => append({ name: "", quantity: "" })} className="rounded-lg h-8">
                         <Plus className="h-4 w-4 mr-1" /> Add Item
                       </Button>
@@ -219,7 +219,7 @@ export function NewDonation() {
 
                   {/* Location */}
                   <div className="space-y-5 bg-muted/30 p-5 rounded-2xl">
-                    <FormLabel className="text-base font-semibold">Pickup Location *</FormLabel>
+                    <label className="text-base font-semibold text-foreground/80">Pickup Location *</label>
                     
                     <FormField
                       control={form.control}
