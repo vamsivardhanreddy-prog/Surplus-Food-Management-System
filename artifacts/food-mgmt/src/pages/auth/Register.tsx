@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -36,9 +37,9 @@ const registerSchema = z.object({
 });
 
 export function Register() {
-  const { register } = useAuth();
+  const { register, user, isLoading } = useAuth();
   const { toast } = useToast();
-  const [locationStr] = useLocation();
+  const [locationStr, setLocation] = useLocation();
   const defaultRole = locationStr.includes("role=ngo") ? "ngo" : "donator";
 
   const form = useForm<z.infer<typeof registerSchema>>({
@@ -50,6 +51,19 @@ export function Register() {
   });
 
   const role = form.watch("role");
+
+  // Redirect when user is authenticated (after registration)
+  useEffect(() => {
+    if (user && !isLoading) {
+      if (user.role === "admin") {
+        setLocation("/admin");
+      } else if (user.role === "donator") {
+        setLocation("/donator");
+      } else if (user.role === "ngo") {
+        setLocation("/ngo");
+      }
+    }
+  }, [user, isLoading, setLocation]);
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {

@@ -1,8 +1,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -15,18 +16,31 @@ const loginSchema = z.object({
 });
 
 export function Login() {
-  const { login } = useAuth();
+  const { login, user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
+  // Redirect when user is authenticated
+  useEffect(() => {
+    if (user && !isLoading) {
+      if (user.role === "admin") {
+        setLocation("/admin");
+      } else if (user.role === "donator") {
+        setLocation("/donator");
+      } else if (user.role === "ngo") {
+        setLocation("/ngo");
+      }
+    }
+  }, [user, isLoading, setLocation]);
+
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       await login(values);
-      // Redirect happens in AuthProvider or ProtectedRoute
     } catch (error) {
-      // Error handled by AuthProvider toast
+      // Error handled by useAuth hook toast
     }
   };
 
