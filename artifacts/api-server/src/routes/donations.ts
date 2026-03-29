@@ -200,6 +200,29 @@ router.post("/:id/claim", requireRole("ngo"), async (req: AuthRequest, res) => {
   }
 
   const id = parseInt(req.params.id);
+  const { currentLatitude, currentLongitude } = req.body;
+
+  // Verify NGO's current location matches their registered location
+  if (currentLatitude === undefined || currentLongitude === undefined) {
+    res.status(400).json({ error: "Location verification required. Please enable location access." });
+    return;
+  }
+
+  if (!user.latitude || !user.longitude) {
+    res.status(400).json({ error: "Your NGO location is not set. Please update your profile." });
+    return;
+  }
+
+  // Check if current location is within 0.5km of registered location (security verification)
+  const distToRegistered = haversineKm(user.latitude, user.longitude, currentLatitude, currentLongitude);
+  const maxVerificationDistanceKm = 0.5;
+  
+  if (distToRegistered > maxVerificationDistanceKm) {
+    res.status(403).json({ 
+      error: `Location verification failed. You are ${distToRegistered.toFixed(1)}km away from your registered NGO location. You must be at your registered location to claim food.` 
+    });
+    return;
+  }
 
   const [donation] = await db.select().from(donationsTable).where(eq(donationsTable.id, id)).limit(1);
   if (!donation) {
@@ -219,16 +242,14 @@ router.post("/:id/claim", requireRole("ngo"), async (req: AuthRequest, res) => {
     return;
   }
 
-  // Check if donation location is within NGO's registered area (0.5km radius)
-  if (user.latitude && user.longitude) {
-    const dist = haversineKm(user.latitude, user.longitude, donation.latitude, donation.longitude);
-    const maxDistanceKm = 0.5; // NGO can only claim food at their registered location
-    if (dist > maxDistanceKm) {
-      res.status(403).json({ 
-        error: `You can only claim food within 0.5km of your registered location. This donation is ${dist.toFixed(1)}km away.` 
-      });
-      return;
-    }
+  // Check if donation location is within NGO's registered area (0.5km radius) for pickup convenience
+  const distToDonation = haversineKm(user.latitude, user.longitude, donation.latitude, donation.longitude);
+  const maxDistanceKm = 0.5; // NGO can only claim food at their registered location
+  if (distToDonation > maxDistanceKm) {
+    res.status(403).json({ 
+      error: `This donation is ${distToDonation.toFixed(1)}km away from your registered location. You can only claim food within 0.5km of your registered location.` 
+    });
+    return;
   }
 
   const [updated] = await db

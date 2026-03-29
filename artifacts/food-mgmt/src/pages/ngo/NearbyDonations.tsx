@@ -40,13 +40,39 @@ export function NearbyDonations() {
 
   const handleClaim = async (id: number) => {
     try {
-      await claimMutation.mutateAsync({ id });
-      toast({ title: "Claimed successfully!", description: "Check your dashboard for pickup details." });
-      queryClient.invalidateQueries({ queryKey: getListNearbyDonationsQueryKey() });
-      queryClient.invalidateQueries({ queryKey: getListDonationsQueryKey() });
-      setLocation("/ngo");
+      // Get NGO's current location for security verification
+      if (!navigator.geolocation) {
+        toast({ variant: "destructive", title: "Error", description: "Geolocation not supported by your browser." });
+        return;
+      }
+
+      // Get current position
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const currentLat = position.coords.latitude;
+          const currentLng = position.coords.longitude;
+          
+          try {
+            // Send claim with current location for verification
+            await claimMutation.mutateAsync({ 
+              id,
+              currentLatitude: currentLat,
+              currentLongitude: currentLng 
+            });
+            toast({ title: "Claimed successfully!", description: "Check your dashboard for pickup details." });
+            queryClient.invalidateQueries({ queryKey: getListNearbyDonationsQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getListDonationsQueryKey() });
+            setLocation("/ngo");
+          } catch (err: any) {
+            toast({ variant: "destructive", title: "Claim failed", description: err.message || "Could not claim." });
+          }
+        },
+        (error) => {
+          toast({ variant: "destructive", title: "Location Error", description: "Please enable location access to claim food." });
+        }
+      );
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Claim failed", description: err.message || "Could not claim." });
+      toast({ variant: "destructive", title: "Error", description: err.message || "Could not claim." });
     }
   };
 
@@ -66,8 +92,13 @@ export function NearbyDonations() {
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
             <MapPin className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-blue-900">Location-Based Claiming</p>
-              <p className="text-sm text-blue-800">You can only claim food donations within 0.5km of your registered NGO location. This ensures fresh food and efficient pickups.</p>
+              <p className="font-medium text-blue-900">Secure Location-Based Claiming</p>
+              <p className="text-sm text-blue-800">
+                ✓ You must be at your registered NGO location to claim food<br/>
+                ✓ When claiming, location access will be requested for verification<br/>
+                ✓ Your current location must match your registered location (within 0.5km)<br/>
+                ✓ This ensures food authenticity and prevents unauthorized claims
+              </p>
             </div>
           </div>
 
