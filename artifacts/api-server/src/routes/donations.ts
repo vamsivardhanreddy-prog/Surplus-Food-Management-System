@@ -170,7 +170,8 @@ router.post("/", requireRole("donator"), async (req: AuthRequest, res) => {
     })
     .returning();
 
-  notifyNearbyNgos(donation.id, donation.title, donation.latitude, donation.longitude).catch(() => {});
+  // Notify all NGOs within 5km that new food is available
+  notifyNearbyNgos(donation.id, donation.title, donation.latitude, donation.longitude, 5).catch(() => {});
 
   const enriched = await enrichDonation(donation);
   res.status(201).json(enriched);
