@@ -39,7 +39,7 @@ app.use("/api", router);
 app.use(express.static(path.join(__dirname, "../../frontend/dist")));
 
 app.use((req, res, next) => {
-  if (req.method === 'GET') {
+  if (req.method === 'GET' && !req.originalUrl.startsWith('/api')) {
     res.sendFile(path.join(__dirname, "../../frontend/dist/index.html"));
   } else {
     next();
