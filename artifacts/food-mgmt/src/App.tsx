@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
 import { AuthProvider } from "@/hooks/use-auth";
+import { useAppSocket } from "@/hooks/use-socket";
 import { Landing } from "@/pages/Landing";
 import { Login } from "@/pages/auth/Login";
 import { Register } from "@/pages/auth/Register";
@@ -15,6 +16,11 @@ import { NgoDashboard } from "@/pages/ngo/NgoDashboard";
 import { NearbyDonations } from "@/pages/ngo/NearbyDonations";
 
 const queryClient = new QueryClient();
+
+function SocketInitializer() {
+  useAppSocket();
+  return null;
+}
 
 function Router() {
   return (
@@ -46,6 +52,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <SocketInitializer />
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />
           </WouterRouter>
